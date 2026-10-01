@@ -49,6 +49,13 @@ test('反向模式只拦截编码 WebVPN 地址；关闭时没有拦截规则', 
     assert.equal(matchedRule(rules, 'https://oj.neu.edu.cn/'), undefined);
     assert.equal((await build({ ...defaults, enabled: false })).length, 0);
 });
+test('浏览器拒绝编译时显式报告错误，避免静默跳过规则', async () => {
+    const rejectingApi = {
+        ...api,
+        declarativeNetRequest: { isRegexSupported: async () => ({ isSupported: false, reason: 'memoryLimitExceeded' }) },
+    };
+    await assert.rejects(context.WebVpnRequestRules.build({ ...defaults, mode: 'to-direct' }, rejectingApi), /memoryLimitExceeded/);
+});
 test('自定义正则保留全 URL；不支持的前瞻在本地判断', async () => {
     const simple = await build({ ...defaults, regex: 'contest/160' });
     const href = 'https://oj.neu.edu.cn/contest/160/problems?x=1';
@@ -77,6 +84,7 @@ test('后台不等待原站：发布 DNR 规则、本地转换、锚点恢复和
         declarativeNetRequest: {
             isRegexSupported: api.declarativeNetRequest.isRegexSupported,
             updateDynamicRules: async ({ addRules }) => { dynamic = addRules; },
+            getDynamicRules: async () => dynamic,
             getSessionRules: async () => [...sessions.values()],
             updateSessionRules: async ({ removeRuleIds = [], addRules = [] }) => {
                 for (const id of removeRuleIds) sessions.delete(id);

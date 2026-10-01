@@ -5,7 +5,9 @@
         let pattern;
         const allowRules = [];
         if (settings.mode === 'to-direct') {
-            pattern = String.raw`^(https?://webvpn\.neu\.edu\.cn(?::[0-9]+)?/https?(?:-[0-9]+)?/[a-f0-9]{34,}(?:[/?].*)?)$`;
+            // DNR 的编译内存只有 2KB；不要在请求层展开长密文的计数重复。
+            // 此处仅识别代理协议路径，密文长度、字符和端口由 converter.js 校验。
+            pattern = String.raw`^(https?://webvpn\.neu\.edu\.cn(?::[0-9]+)?/https?[/-].*)$`;
         } else if (settings.mode === 'to-vpn') {
             // 默认范围无需使用 RE2 不支持的负向前瞻：通过独立 allow 规则排除域名。
             if (settings.regex === WebVpnConverter.DEFAULT_REGEX) {
@@ -30,6 +32,10 @@
                 resourceTypes: ['main_frame'],
             } });
         } else return [];
+        const supported = await chromeApi.declarativeNetRequest.isRegexSupported({
+            regex: pattern, isCaseSensitive: false, requireCapturing: true,
+        });
+        if (!supported.isSupported) throw new Error(`浏览器不支持请求规则：${supported.reason || '正则无法编译'}`);
         return [{
             id: 1, priority: 1,
             action: { type: 'redirect', redirect: { regexSubstitution: chromeApi.runtime.getURL('redirect.html') + '#\\1' } },

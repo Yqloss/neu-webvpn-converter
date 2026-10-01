@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "东北大学 WebVPN 地址转换",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "导航时自动转换 WebVPN 和普通网址，支持切换方向和自定义 URL 正则。",
   "permissions": ["storage", "webNavigation", "declarativeNetRequestWithHostAccess"],
   "host_permissions": ["http://*/*", "https://*/*"],

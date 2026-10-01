@@ -49,11 +49,15 @@ function saveSettings(requireValidRegex = false) {
     const currentRevision = ++revision;
     message('正在自动保存…');
     // 顺序写入，确保快速连续修改时最终保存的是最新设置。
-    saveQueue = saveQueue.then(() => chrome.storage.local.set(snapshot)).then(() => {
+    saveQueue = saveQueue.then(async () => {
+        await chrome.storage.local.set(snapshot);
+        const result = await chrome.runtime.sendMessage({ type: 'settings-status' });
+        if (!result?.ok) throw new Error(result?.error || '请求规则未生效');
+    }).then(() => {
         if (currentRevision !== revision) return;
-        message(regexError ? '已自动保存开关和模式；无效正则保留上一次有效设置。' : '已自动保存。', !!regexError);
+        message(regexError ? '开关和模式已生效；无效正则保留上一次有效设置。' : '已自动保存并生效。', !!regexError);
     }).catch(error => {
-        if (currentRevision === revision) message(`自动保存失败：${error.message}`, true);
+        if (currentRevision === revision) message(`设置未生效：${error.message}`, true);
     });
 }
 mode.addEventListener('change', () => {

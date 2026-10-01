@@ -17,6 +17,9 @@ test('已知 OJ 地址向量，保留查询参数和锚点', () => {
     assert.equal(convert('https://oj.neu.edu.cn/contest/160/problems?a=1#x'), prefix + ojHex + '/contest/160/problems?a=1#x');
     assert.equal(convert(prefix + ojHex + '/contest/160/problems?a=1#x', direct), 'https://oj.neu.edu.cn/contest/160/problems?a=1#x');
 });
+test('用户报告的 training 地址正确还原', () => {
+    assert.equal(convert(prefix + ojHex + '/training/5/problems', direct), 'https://oj.neu.edu.cn/training/5/problems');
+});
 test('长域名跨 AES 分组，匹配已知 portal 地址', () => {
     assert.equal(convert('https://personal.neu.edu.cn/portal/'), prefix + personalHex + '/portal/');
     assert.equal(convert(prefix + personalHex + '/portal/', direct), 'https://personal.neu.edu.cn/portal/');

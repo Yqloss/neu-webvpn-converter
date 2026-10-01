@@ -6,7 +6,6 @@ let updateQueue = Promise.resolve();
 const originalUrls = new Map();
 const ready = chrome.storage.local.get(WebVpnConverter.DEFAULTS).then(saved => {
     settings = saved;
-    return updateRules();
 });
 
 function updateRules() {
@@ -14,6 +13,8 @@ function updateRules() {
     updateQueue = updateQueue.catch(() => {}).then(async () => {
         const rules = await WebVpnRequestRules.build(snapshot, chrome);
         await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [1, 2, 3], addRules: rules });
+        const installed = await chrome.declarativeNetRequest.getDynamicRules();
+        if (rules.some(rule => !installed.some(item => item.id === rule.id))) throw new Error('浏览器未安装全部请求规则');
         const bypassRules = await chrome.declarativeNetRequest.getSessionRules();
         await chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: bypassRules.map(rule => rule.id) });
     });
@@ -44,6 +45,15 @@ function withoutHash(href) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, respond) => {
+    if (message?.type === 'settings-status' && sender.id === chrome.runtime.id) {
+        (async () => {
+            await ready;
+            settings = await chrome.storage.local.get(WebVpnConverter.DEFAULTS);
+            await updateRules();
+            respond({ ok: true });
+        })().catch(error => respond({ error: error.message }));
+        return true;
+    }
     if (message?.type !== 'resolve-navigation') return;
     if (sender.id !== chrome.runtime.id || !sender.url?.startsWith(chrome.runtime.getURL('redirect.html')) || !Number.isInteger(sender.tab?.id)) return;
     (async () => {
@@ -76,4 +86,4 @@ chrome.tabs.onRemoved.addListener(tabId => {
     originalUrls.delete(tabId);
     chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [100000 + tabId] }).catch(() => {});
 });
-ready.catch(error => console.error('初始化请求规则失败：', error));
+ready.then(updateRules).catch(error => console.error('初始化请求规则失败：', error));
