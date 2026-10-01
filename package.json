@@ -1,0 +1,9 @@
+{
+  "name": "neu-webvpn-converter",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "build": "powershell -NoProfile -ExecutionPolicy Bypass -File ./build.ps1"
+  }
+}
