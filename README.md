@@ -8,7 +8,7 @@ Chrome / Edge Manifest V3 扩展。监听顶层页面的 `webNavigation.onBefore
 2. Chrome 打开 `chrome://extensions/`；Edge 打开 `edge://extensions/`。
 3. 开启“开发者模式”，点击“加载已解压的扩展程序”，选择包含 `manifest.json` 的文件夹。
 4. 停用此前的油猴自动转换脚本，避免两种模式之间来回跳转。
-5. 点击扩展图标修改设置。修改后点击“保存设置”，下次导航或刷新生效。
+5. 点击扩展图标修改设置。修改后自动保存，下次导航或刷新生效。正则无效时显示提示，保留上一次有效正则；恢复默认正则也会自动保存。
 
 开发时也可以直接加载本项目的 `extension` 文件夹。扩展无须联网下载依赖，无须 npm install。
 
